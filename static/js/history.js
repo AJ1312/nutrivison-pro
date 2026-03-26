@@ -47,7 +47,7 @@ function prettifyKey(rawKey) {
 }
 
 function getEmptyStateMessageElement() {
-    return emptyState.querySelector("p");
+    return emptyState ? emptyState.querySelector("p") : null;
 }
 
 function setEmptyStateMessage(message) {
@@ -66,7 +66,9 @@ function renderCardImage(image, altText) {
 }
 
 function buildCard(analysis) {
-    const analysisId = safeText(analysis._id, "");
+    const analysisId = typeof analysis._id === "string" ? analysis._id.trim() : "";
+    const hasValidId = Boolean(analysisId);
+    const disabledAttr = hasValidId ? "" : ' disabled aria-disabled="true"';
     const food = analysis.food_data || {};
     const title = safeText(food.food_name, "Unknown food");
     const category = safeText(food.category, "Unknown category");
@@ -95,10 +97,14 @@ function buildCard(analysis) {
         '<div class="controls">' +
         '<button type="button" class="view-btn" data-action="view" data-id="' +
         escapeHtml(analysisId) +
-        '">View</button>' +
+        '"' +
+        disabledAttr +
+        ">View</button>" +
         '<button type="button" class="del-btn" data-action="delete" data-id="' +
         escapeHtml(analysisId) +
-        '">Delete</button>' +
+        '"' +
+        disabledAttr +
+        ">Delete</button>" +
         "</div>" +
         "</div>" +
         "</article>"
@@ -157,7 +163,7 @@ function buildModal(analysis) {
         : '<div class="modal-image-empty"><i class="fa-solid fa-image"></i><span>No image preview available</span></div>';
 
     return (
-        '<h2 class="modal-title">' +
+        '<h2 class="modal-title" id="detailModalTitle">' +
         escapeHtml(title) +
         "</h2>" +
         '<p class="meta">' +
@@ -175,7 +181,26 @@ function buildModal(analysis) {
     );
 }
 
+function setModalVisibility(isVisible) {
+    if (!detailModal || !modalContent) {
+        return;
+    }
+
+    const hidden = !isVisible;
+    detailModal.classList.toggle("hidden", hidden);
+    detailModal.toggleAttribute("hidden", hidden);
+    detailModal.setAttribute("aria-hidden", String(hidden));
+
+    if (hidden) {
+        modalContent.innerHTML = "";
+    }
+}
+
 async function loadHistory() {
+    if (!historyGrid || !emptyState) {
+        return;
+    }
+
     try {
         const response = await fetch("/api/history");
 
@@ -227,7 +252,7 @@ async function viewAnalysis(analysisId) {
         }
 
         modalContent.innerHTML = buildModal(payload.analysis || {});
-        detailModal.classList.remove("hidden");
+        setModalVisibility(true);
     } catch (error) {
         window.alert("Unable to open details: " + safeText(error.message, "Unknown error"));
     }
@@ -271,40 +296,49 @@ async function deleteAnalysis(analysisId) {
     }
 }
 
-historyGrid.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-action]");
-    if (!button) {
-        return;
-    }
+if (historyGrid) {
+    historyGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button || button.disabled) {
+            return;
+        }
 
-    const action = button.getAttribute("data-action");
-    const id = button.getAttribute("data-id") || "";
+        const action = button.getAttribute("data-action");
+        const id = button.getAttribute("data-id") || "";
 
-    if (action === "view") {
-        viewAnalysis(id);
-    }
+        if (action === "view") {
+            viewAnalysis(id);
+        }
 
-    if (action === "delete") {
-        deleteAnalysis(id);
-    }
-});
-
-function closeModal() {
-    detailModal.classList.add("hidden");
+        if (action === "delete") {
+            deleteAnalysis(id);
+        }
+    });
 }
 
-closeModalBtn.addEventListener("click", closeModal);
+function closeModal() {
+    setModalVisibility(false);
+}
 
-detailModal.addEventListener("click", (event) => {
-    if (event.target === detailModal) {
-        closeModal();
-    }
-});
+if (closeModalBtn) {
+    closeModalBtn.addEventListener("click", closeModal);
+}
+
+if (detailModal) {
+    detailModal.addEventListener("click", (event) => {
+        if (event.target === detailModal) {
+            closeModal();
+        }
+    });
+}
 
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !detailModal.classList.contains("hidden")) {
+    if (event.key === "Escape" && detailModal && !detailModal.classList.contains("hidden")) {
         closeModal();
     }
 });
 
-loadHistory();
+if (historyGrid && emptyState) {
+    setModalVisibility(false);
+    loadHistory();
+}

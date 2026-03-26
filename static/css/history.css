@@ -21,6 +21,10 @@ html {
     text-size-adjust: 100%;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 body {
     min-height: 100vh;
     font-family: "Sora", sans-serif;
@@ -222,6 +226,11 @@ nav {
     font-weight: 600;
     font-size: 0.9rem;
     line-height: 1.25;
+}
+
+.controls button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .view-btn {
