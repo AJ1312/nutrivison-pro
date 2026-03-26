@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History | NutriVision Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="brand">
+            <span class="brand-badge">NV</span>
+            <span>NutriVision Pro</span>
+        </a>
+
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-link">Analyzer</a>
+            <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+            <form action="{{ url_for('logout') }}" method="POST" class="inline-form">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <p class="eyebrow">Your Records</p>
+            <h1>Analysis History</h1>
+            <p>Revisit recent scans, inspect nutrient breakdowns, and clean up old entries.</p>
+        </section>
+
+        <section class="history-grid" id="historyGrid"></section>
+
+        <section id="emptyState" class="empty-state hidden">
+            <i class="fa-solid fa-bowl-food"></i>
+            <h3>No analyses yet</h3>
+            <p>Upload your first food image and your history will appear here.</p>
+            <a href="{{ url_for('dashboard') }}" class="cta">Scan Now</a>
+        </section>
+    </main>
+
+    <div class="modal hidden" id="detailModal">
+        <div class="modal-card">
+            <button class="modal-close" id="closeModal" type="button"><i class="fa-solid fa-xmark"></i></button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/history.js') }}"></script>
+</body>
+</html>

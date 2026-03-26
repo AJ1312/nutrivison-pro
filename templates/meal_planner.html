@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Planner | NutriVision Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/utility_pages.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('dashboard') }}" class="brand">
+            <span class="brand-badge">NV</span>
+            <span>NutriVision Pro</span>
+        </a>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-link">Analyzer</a>
+            <a href="{{ url_for('food_search_page') }}" class="nav-link">Food Search</a>
+            <a href="{{ url_for('nutrition_assistant_page') }}" class="nav-link">Assistant</a>
+            <a href="{{ url_for('history_page') }}" class="nav-link">History</a>
+            <form action="{{ url_for('logout') }}" method="POST" class="inline-form">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main class="tool-layout">
+        <section class="tool-panel">
+            <p class="eyebrow">Gemini Meal Intelligence</p>
+            <h1>Hi, {{ current_user.user_name or 'User' }}. Plan your meals.</h1>
+            <p class="description">Generate a realistic one-day meal plan tailored to your goal, calorie target, and diet preferences.</p>
+
+            <form id="mealPlannerForm" class="tool-form">
+                <div class="grid-2">
+                    <label>Goal
+                        <select name="goal" required>
+                            <option value="Weight loss">Weight loss</option>
+                            <option value="Muscle gain">Muscle gain</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="General wellness">General wellness</option>
+                        </select>
+                    </label>
+                    <label>Diet Type
+                        <select name="diet_type" required>
+                            <option value="Balanced">Balanced</option>
+                            <option value="Vegetarian">Vegetarian</option>
+                            <option value="Vegan">Vegan</option>
+                            <option value="High protein">High protein</option>
+                            <option value="Low carb">Low carb</option>
+                        </select>
+                    </label>
+                    <label>Meals Per Day
+                        <select name="meals_per_day" required>
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                        </select>
+                    </label>
+                    <label>Daily Calorie Target
+                        <input type="number" name="calorie_target" min="900" max="4500" value="2000">
+                    </label>
+                </div>
+                <label>Allergies / Restrictions
+                    <input type="text" name="allergies" placeholder="e.g. peanut, lactose, shellfish">
+                </label>
+                <label>Preferred Cuisines
+                    <input type="text" name="cuisines" placeholder="e.g. Indian, Mediterranean, quick recipes">
+                </label>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Meal Plan</button>
+            </form>
+            <div id="formMessage"></div>
+        </section>
+
+        <section class="result-panel">
+            <div id="resultBox" class="result-placeholder">
+                <i class="fa-solid fa-utensils"></i>
+                <p>Your AI meal plan will appear here.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/meal_planner.js') }}"></script>
+</body>
+</html>

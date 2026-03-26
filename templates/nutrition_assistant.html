@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Assistant | NutriVision Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/utility_pages.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('dashboard') }}" class="brand">
+            <span class="brand-badge">NV</span>
+            <span>NutriVision Pro</span>
+        </a>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-link">Analyzer</a>
+            <a href="{{ url_for('meal_planner_page') }}" class="nav-link">Meal Planner</a>
+            <a href="{{ url_for('food_search_page') }}" class="nav-link">Food Search</a>
+            <a href="{{ url_for('history_page') }}" class="nav-link">History</a>
+            <form action="{{ url_for('logout') }}" method="POST" class="inline-form">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main class="tool-layout">
+        <section class="tool-panel">
+            <p class="eyebrow">Gemini Nutrition Assistant</p>
+            <h1>Ask anything about your food choices</h1>
+            <p class="description">Get practical, structured guidance for meals, macros, timing, and healthier alternatives.</p>
+
+            <form id="assistantForm" class="tool-form">
+                <label>Your Question
+                    <textarea name="question" rows="5" placeholder="e.g. How can I hit 120g protein in a vegetarian Indian diet?" required></textarea>
+                </label>
+                <div class="grid-2">
+                    <label>Goal
+                        <input type="text" name="goal" placeholder="e.g. Fat loss with high energy">
+                    </label>
+                    <label>Dietary Context / Allergies
+                        <input type="text" name="dietary_context" placeholder="e.g. Lactose intolerant, no eggs">
+                    </label>
+                </div>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-comments"></i> Ask Assistant</button>
+            </form>
+            <div id="formMessage"></div>
+        </section>
+
+        <section class="result-panel">
+            <div id="resultBox" class="result-placeholder">
+                <i class="fa-solid fa-robot"></i>
+                <p>Your assistant response will appear here.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/nutrition_assistant.js') }}"></script>
+</body>
+</html>

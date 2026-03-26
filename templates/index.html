@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriVision Pro | AI Food Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <div class="noise"></div>
+
+    <header class="topbar">
+        <a href="/" class="brand" aria-label="NutriVision Home">
+            <span class="brand-badge">NV</span>
+            <span class="brand-text">NutriVision Pro</span>
+        </a>
+
+        <nav class="topbar-actions">
+            {% if current_user.user_id %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Analyzer</a>
+                <a href="{{ url_for('meal_planner_page') }}" class="btn btn-ghost">Meal Planner</a>
+                <a href="{{ url_for('food_search_page') }}" class="btn btn-ghost">Food Search</a>
+                <a href="{{ url_for('nutrition_assistant_page') }}" class="btn btn-ghost">Assistant</a>
+                <a href="{{ url_for('history_page') }}" class="btn btn-ghost">History</a>
+                <form action="{{ url_for('logout') }}" method="POST" class="inline-form">
+                    <button type="submit" class="btn btn-solid">Logout</button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-ghost">Login</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-solid">Create Account</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">AI Nutrition Platform</p>
+            <h1>Scan Food. Decode Nutrition. Track Every Bite.</h1>
+            <p class="lead">
+                NutriVision Pro turns food images into actionable health insights with AI-powered analysis,
+                nearby availability hints, and private cloud history.
+            </p>
+            <div class="hero-cta">
+                {% if current_user.user_id %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-solid btn-large">
+                        <i class="fa-solid fa-camera"></i> Start Scanning
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}" class="btn btn-solid btn-large">
+                        <i class="fa-solid fa-user-plus"></i> Get Started
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('history_page') if current_user.user_id else url_for('login') }}" class="btn btn-ghost btn-large">
+                    <i class="fa-solid fa-clock-rotate-left"></i> View Analysis History
+                </a>
+            </div>
+
+            <div class="stat-grid">
+                <article class="stat-card reveal">
+                    <span class="stat-value">98%</span>
+                    <span class="stat-label">Recognition Confidence</span>
+                </article>
+                <article class="stat-card reveal">
+                    <span class="stat-value">16MB</span>
+                    <span class="stat-label">Per Image Upload Limit</span>
+                </article>
+                <article class="stat-card reveal">
+                    <span class="stat-value">50</span>
+                    <span class="stat-label">Recent Analyses Per User</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="feature-section">
+            <article class="feature reveal" data-link="{{ url_for('dashboard') if current_user.user_id else url_for('login') }}">
+                <div class="feature-icon"><i class="fa-solid fa-utensils"></i></div>
+                <h3>Smart Food Scanner</h3>
+                <p>Upload any meal image and get calories, macros, vitamins, allergens, and health tags.</p>
+                <span class="feature-link">Open Analyzer <i class="fa-solid fa-arrow-right"></i></span>
+            </article>
+
+            <article class="feature reveal" data-link="{{ url_for('history_page') if current_user.user_id else url_for('login') }}">
+                <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h3>Personal History Page</h3>
+                <p>Review your past scans in a clean visual timeline and inspect every nutrition detail.</p>
+                <span class="feature-link">Open History <i class="fa-solid fa-arrow-right"></i></span>
+            </article>
+
+            <article class="feature reveal" data-link="{{ url_for('signup') if not current_user.user_id else url_for('dashboard') }}">
+                <div class="feature-icon"><i class="fa-solid fa-shield-heart"></i></div>
+                <h3>Secure Accounts</h3>
+                <p>Sign up and log in with password hashing, private records, and user-scoped data.</p>
+                <span class="feature-link">{% if current_user.user_id %}Go to App{% else %}Create Account{% endif %} <i class="fa-solid fa-arrow-right"></i></span>
+            </article>
+
+            <article class="feature reveal" data-link="{{ url_for('meal_planner_page') if current_user.user_id else url_for('login') }}">
+                <div class="feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>AI Meal Planner</h3>
+                <p>Generate tailored one-day plans based on goals, calories, allergies, and diet preference.</p>
+                <span class="feature-link">Plan Meals <i class="fa-solid fa-arrow-right"></i></span>
+            </article>
+
+            <article class="feature reveal" data-link="{{ url_for('food_search_page') if current_user.user_id else url_for('login') }}">
+                <div class="feature-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                <h3>Food Metrics Search</h3>
+                <p>Search any food by name and instantly fetch calories, macros, micros, GI, and alternatives.</p>
+                <span class="feature-link">Search Food <i class="fa-solid fa-arrow-right"></i></span>
+            </article>
+
+            <article class="feature reveal" data-link="{{ url_for('nutrition_assistant_page') if current_user.user_id else url_for('login') }}">
+                <div class="feature-icon"><i class="fa-solid fa-comments"></i></div>
+                <h3>Nutrition Assistant</h3>
+                <p>Ask practical questions and get concise AI guidance for meal timing, portions, and choices.</p>
+                <span class="feature-link">Ask Assistant <i class="fa-solid fa-arrow-right"></i></span>
+            </article>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

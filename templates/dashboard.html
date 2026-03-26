@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriVision Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/analyzer.css') }}">
+</head>
+<body>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="brand">
+            <span class="brand-badge">NV</span>
+            <span>NutriVision Pro</span>
+        </a>
+
+        <nav>
+            <a href="{{ url_for('meal_planner_page') }}" class="nav-link">Meal Planner</a>
+            <a href="{{ url_for('food_search_page') }}" class="nav-link">Food Search</a>
+            <a href="{{ url_for('nutrition_assistant_page') }}" class="nav-link">Assistant</a>
+            <a href="{{ url_for('history_page') }}" class="nav-link">History</a>
+            <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+            <form action="{{ url_for('logout') }}" method="POST" class="inline-form">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main class="layout">
+        <section class="upload-panel">
+            <div class="panel-head">
+                <p class="eyebrow">Food Intelligence Engine</p>
+                <p class="hello-line">Hi, {{ current_user.user_name or 'User' }}.</p>
+                <h1>Analyze your meal in seconds</h1>
+                <p>
+                    Drag a food image or choose a file. We’ll identify the food and estimate complete nutrition details.
+                </p>
+            </div>
+
+            <div class="tool-links">
+                <a href="{{ url_for('meal_planner_page') }}" class="tool-link">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Meal Planner</span>
+                </a>
+                <a href="{{ url_for('food_search_page') }}" class="tool-link">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    <span>Food Metrics</span>
+                </a>
+                <a href="{{ url_for('nutrition_assistant_page') }}" class="tool-link">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Nutrition Assistant</span>
+                </a>
+            </div>
+
+            <div id="locationStatus" class="location-status"></div>
+
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept="image/*" hidden>
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <h3>Drop image here</h3>
+                <p>Supports JPG, PNG, GIF, BMP, WebP up to 16MB</p>
+                <button class="action-btn" id="chooseFileBtn" type="button">Choose File</button>
+                <div class="file-info" id="fileInfo"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loader-ring"></div>
+                <h3 id="loadingText">Analyzing nutritional profile...</h3>
+                <p>Gemini is extracting the food details and nutrient estimates.</p>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div id="messageBox"></div>
+        </section>
+
+        <section class="results-panel" id="resultsPanel">
+            <div class="results-header">
+                <img id="foodImage" src="" alt="Uploaded food preview">
+                <div>
+                    <h2 id="resultTitle">No analysis yet</h2>
+                    <p id="resultSubtitle">Your detailed nutrition report appears here.</p>
+                    <button class="ghost-btn" id="resetBtn" type="button">
+                        <i class="fa-solid fa-rotate-right"></i> Analyze Another
+                    </button>
+                </div>
+            </div>
+            <div class="result-grid" id="resultGrid"></div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/analyzer.js') }}"></script>
+</body>
+</html>

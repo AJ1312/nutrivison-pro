@@ -1,0 +1,212 @@
+=============================================================================
+GIT COMMANDS TO PUSH LOCATION FEATURE TO REPOSITORY
+=============================================================================
+
+Repository: https://github.com/pranavsoftware/NutriVision-Pro---AI-Powered-Food-Analyzer.git
+
+-----------------------------------------------------------------------------
+STEP 1: Initialize Git (if not already done)
+-----------------------------------------------------------------------------
+
+git init
+git remote add origin https://github.com/pranavsoftware/NutriVision-Pro---AI-Powered-Food-Analyzer.git
+
+-----------------------------------------------------------------------------
+STEP 2: Check Current Status
+-----------------------------------------------------------------------------
+
+git status
+
+This will show all modified and new files:
+- Modified: app.py, templates/dashboard.html, static/css/analyzer.css, README.md
+- New: LOCATION_FEATURE.md, IMPLEMENTATION_SUMMARY.md, test_location_feature.py
+
+-----------------------------------------------------------------------------
+STEP 3: Stage All Changes
+-----------------------------------------------------------------------------
+
+git add .
+
+Or stage files individually:
+
+git add app.py
+git add templates/dashboard.html
+git add static/css/analyzer.css
+git add README.md
+git add LOCATION_FEATURE.md
+git add IMPLEMENTATION_SUMMARY.md
+git add test_location_feature.py
+
+-----------------------------------------------------------------------------
+STEP 4: Commit Changes
+-----------------------------------------------------------------------------
+
+git commit -m "feat: Add location-based nearby places discovery feature
+
+- Implement geolocation API integration for automatic location access
+- Add get_nearby_places() function using Gemini API for place suggestions
+- Update /upload endpoint to accept latitude and longitude parameters
+- Display 4-5 nearby shops, restaurants, and hotels in results
+- Add location data storage in MongoDB
+- Implement privacy-first approach with graceful degradation
+- Add comprehensive documentation and test suite
+- Update README with new feature details
+
+Version: 1.1.0"
+
+-----------------------------------------------------------------------------
+STEP 5: Pull Latest Changes (if repository already exists)
+-----------------------------------------------------------------------------
+
+git pull origin main --rebase
+
+Or if using 'master' branch:
+
+git pull origin master --rebase
+
+If there are conflicts, resolve them and continue:
+
+git add .
+git rebase --continue
+
+-----------------------------------------------------------------------------
+STEP 6: Push to GitHub
+-----------------------------------------------------------------------------
+
+# For main branch:
+git push origin main
+
+# For master branch:
+git push origin master
+
+# If this is the first push:
+git push -u origin main
+
+# If you need to force push (use carefully):
+git push origin main --force
+
+-----------------------------------------------------------------------------
+STEP 7: Verify Push
+-----------------------------------------------------------------------------
+
+Visit your repository:
+https://github.com/pranavsoftware/NutriVision-Pro---AI-Powered-Food-Analyzer
+
+Check:
+- All files are uploaded
+- Commit message is visible
+- README.md displays correctly with new features
+
+=============================================================================
+ALTERNATIVE: ONE-LINE COMMAND SEQUENCE
+=============================================================================
+
+For quick push (if repository is already set up):
+
+git add . && git commit -m "feat: Add location-based nearby places feature (v1.1.0)" && git pull origin main --rebase && git push origin main
+
+=============================================================================
+TROUBLESHOOTING
+=============================================================================
+
+Issue: "fatal: not a git repository"
+Solution: Run 'git init' first
+
+Issue: "rejected - non-fast-forward"
+Solution: Run 'git pull origin main --rebase' then push again
+
+Issue: "remote origin already exists"
+Solution: This is fine, skip the 'git remote add' command
+
+Issue: Authentication failed
+Solution: Use GitHub Personal Access Token instead of password
+         Generate at: https://github.com/settings/tokens
+
+Issue: Branch name mismatch (main vs master)
+Solution: Check your default branch:
+         git branch -a
+         Use the correct branch name in commands
+
+=============================================================================
+CREATE A NEW BRANCH FOR THIS FEATURE (OPTIONAL)
+=============================================================================
+
+If you want to create a feature branch instead of pushing to main:
+
+git checkout -b feature/location-based-places
+git add .
+git commit -m "feat: Add location-based nearby places feature (v1.1.0)"
+git push origin feature/location-based-places
+
+Then create a Pull Request on GitHub to merge into main.
+
+=============================================================================
+FILES MODIFIED IN THIS UPDATE
+=============================================================================
+
+Modified Files:
+1. app.py - Added get_nearby_places() and location handling
+2. templates/dashboard.html - Added geolocation and location display
+3. static/css/analyzer.css - Added .warning style
+4. README.md - Updated with new features and changelog
+
+New Files:
+1. LOCATION_FEATURE.md - Feature documentation
+2. IMPLEMENTATION_SUMMARY.md - Technical implementation guide
+3. test_location_feature.py - Verification test script
+4. GIT_PUSH_COMMANDS.txt - This file
+
+=============================================================================
+POST-PUSH CHECKLIST
+=============================================================================
+
+After pushing, verify:
+□ All files are visible on GitHub
+□ README.md displays properly with new features highlighted
+□ Code is properly formatted
+□ No sensitive data (API keys, passwords) in commits
+□ .env file is NOT pushed (should be in .gitignore)
+□ Documentation is clear and complete
+□ Version number updated to 1.1.0
+
+=============================================================================
+CREATING A RELEASE TAG (OPTIONAL)
+=============================================================================
+
+To create a version tag for v1.1.0:
+
+git tag -a v1.1.0 -m "Version 1.1.0 - Location-based nearby places feature"
+git push origin v1.1.0
+
+Then create a release on GitHub:
+1. Go to repository → Releases → Create a new release
+2. Choose tag v1.1.0
+3. Title: "NutriVision Pro v1.1.0 - Location Discovery"
+4. Description: Add release notes from IMPLEMENTATION_SUMMARY.md
+5. Publish release
+
+=============================================================================
+RECOMMENDED GIT WORKFLOW
+=============================================================================
+
+# 1. Check status
+git status
+
+# 2. Add all changes
+git add .
+
+# 3. Commit with descriptive message
+git commit -m "feat: Add location-based nearby places feature (v1.1.0)"
+
+# 4. Pull latest changes
+git pull origin main --rebase
+
+# 5. Push to repository
+git push origin main
+
+# 6. Verify on GitHub
+# Visit: https://github.com/pranavsoftware/NutriVision-Pro---AI-Powered-Food-Analyzer
+
+=============================================================================
+END OF GIT PUSH COMMANDS
+=============================================================================

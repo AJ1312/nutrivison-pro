@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Metrics Search | NutriVision Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/utility_pages.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a href="{{ url_for('dashboard') }}" class="brand">
+            <span class="brand-badge">NV</span>
+            <span>NutriVision Pro</span>
+        </a>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-link">Analyzer</a>
+            <a href="{{ url_for('meal_planner_page') }}" class="nav-link">Meal Planner</a>
+            <a href="{{ url_for('nutrition_assistant_page') }}" class="nav-link">Assistant</a>
+            <a href="{{ url_for('history_page') }}" class="nav-link">History</a>
+            <form action="{{ url_for('logout') }}" method="POST" class="inline-form">
+                <button type="submit" class="nav-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main class="tool-layout">
+        <section class="tool-panel">
+            <p class="eyebrow">Gemini Food Metrics</p>
+            <h1>Search food and get nutrition metrics</h1>
+            <p class="description">Use text search when you don’t want to upload an image. Get calories, macros, micros, and alternatives.</p>
+
+            <form id="foodSearchForm" class="tool-form">
+                <label>Food Name
+                    <input type="text" name="food_name" placeholder="e.g. paneer tikka, banana, oats upma" required>
+                </label>
+                <div class="grid-2">
+                    <label>Serving Size (grams)
+                        <input type="number" name="serving_size" min="1" value="100">
+                    </label>
+                    <div class="hint-box">
+                        <p><strong>Tip:</strong> Use specific words like <code>boiled egg</code> or <code>brown rice cooked</code> for better accuracy.</p>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn"><i class="fa-solid fa-magnifying-glass-chart"></i> Fetch Metrics</button>
+            </form>
+            <div id="formMessage"></div>
+        </section>
+
+        <section class="result-panel">
+            <div id="resultBox" class="result-placeholder">
+                <i class="fa-solid fa-apple-whole"></i>
+                <p>Food metrics will appear here after search.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/food_search.js') }}"></script>
+</body>
+</html>

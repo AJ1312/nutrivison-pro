@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | NutriVision Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+    <main class="auth-shell">
+        <section class="auth-promo">
+            <p class="eyebrow">Welcome Back</p>
+            <h1>Continue your nutrition journey</h1>
+            <p>Access your personal food analyses and upload new meals with AI-powered nutrition decoding.</p>
+            <a href="{{ url_for('index') }}" class="link-back"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+        </section>
+
+        <section class="auth-form-wrap">
+            <h2>Login</h2>
+            <p class="subtext">Use your account credentials</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ 'alert-success' if category == 'success' else 'alert-error' }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('login', next=request.args.get('next')) }}" method="POST" class="auth-form">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="you@example.com" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Minimum 8 characters" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <p class="switch">New here? <a href="{{ url_for('signup') }}">Create account</a></p>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | NutriVision Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body>
+    <main class="auth-shell">
+        <section class="auth-promo">
+            <p class="eyebrow">Create Account</p>
+            <h1>Start scanning food like a pro</h1>
+            <p>Join NutriVision Pro to get secure food analysis history and personalized AI-powered nutrition insights.</p>
+            <a href="{{ url_for('index') }}" class="link-back"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+        </section>
+
+        <section class="auth-form-wrap">
+            <h2>Sign Up</h2>
+            <p class="subtext">It takes less than a minute</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ 'alert-success' if category == 'success' else 'alert-error' }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('signup') }}" method="POST" class="auth-form">
+                <label>Full Name</label>
+                <input type="text" name="name" placeholder="Your name" minlength="2" required>
+
+                <label>Email</label>
+                <input type="email" name="email" placeholder="you@example.com" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="At least 8 characters" minlength="8" required>
+
+                <button type="submit">Create Account</button>
+            </form>
+
+            <p class="switch">Already registered? <a href="{{ url_for('login') }}">Login</a></p>
+        </section>
+    </main>
+</body>
+</html>
