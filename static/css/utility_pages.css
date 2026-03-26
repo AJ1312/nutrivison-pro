@@ -16,9 +16,16 @@
     padding: 0;
 }
 
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     min-height: 100vh;
     font-family: "Sora", sans-serif;
+    line-height: 1.55;
     color: var(--text);
     background:
         radial-gradient(circle at 8% 12%, rgba(73, 214, 179, 0.17), transparent 30%),
@@ -76,8 +83,9 @@ nav {
     color: var(--text);
     text-decoration: none;
     padding: 9px 12px;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     font-weight: 600;
+    line-height: 1.25;
 }
 
 .nav-btn {
@@ -129,7 +137,7 @@ label {
     display: grid;
     gap: 6px;
     color: #d3e2ff;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
 }
 
 input,
@@ -142,6 +150,8 @@ textarea {
     color: var(--text);
     padding: 11px 12px;
     font-family: "Sora", sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.25;
 }
 
 textarea {
@@ -189,6 +199,8 @@ textarea:focus {
     align-items: center;
     gap: 8px;
     justify-content: center;
+    font-size: 0.95rem;
+    line-height: 1.25;
 }
 
 .result-placeholder {
@@ -213,7 +225,7 @@ textarea:focus {
     margin-top: 10px;
     border-radius: 10px;
     padding: 10px 12px;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     border: 1px solid transparent;
 }
 
@@ -309,7 +321,7 @@ textarea:focus {
     .nav-link,
     .nav-btn {
         padding: 8px 10px;
-        font-size: 0.8rem;
+        font-size: 0.84rem;
     }
 
     .tool-panel,

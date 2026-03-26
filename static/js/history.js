@@ -4,6 +4,8 @@ const detailModal = document.getElementById("detailModal");
 const modalContent = document.getElementById("modalContent");
 const closeModalBtn = document.getElementById("closeModal");
 
+const defaultEmptyMessage = "Upload your first food image and your history will appear here.";
+
 function escapeHtml(text) {
     return String(text)
         .replaceAll("&", "&amp;")
@@ -13,42 +15,89 @@ function escapeHtml(text) {
         .replaceAll("'", "&#39;");
 }
 
+function safeText(value, fallback = "N/A") {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+
+    if (Array.isArray(value)) {
+        if (value.length === 0) {
+            return fallback;
+        }
+        return value.map((item) => String(item).trim()).filter(Boolean).join(", ");
+    }
+
+    if (typeof value === "object") {
+        try {
+            return JSON.stringify(value);
+        } catch (_error) {
+            return fallback;
+        }
+    }
+
+    const normalized = String(value).trim();
+    return normalized || fallback;
+}
+
+function prettifyKey(rawKey) {
+    return safeText(rawKey, "detail")
+        .replaceAll("_", " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function getEmptyStateMessageElement() {
+    return emptyState.querySelector("p");
+}
+
+function setEmptyStateMessage(message) {
+    const paragraph = getEmptyStateMessageElement();
+    if (paragraph) {
+        paragraph.textContent = message || defaultEmptyMessage;
+    }
+}
+
+function renderCardImage(image, altText) {
+    if (!image) {
+        return '<div class="img-fallback"><i class="fa-solid fa-image"></i><span>No image preview</span></div>';
+    }
+
+    return '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(altText) + '" loading="lazy">';
+}
+
 function buildCard(analysis) {
+    const analysisId = safeText(analysis._id, "");
     const food = analysis.food_data || {};
-    const title = escapeHtml(food.food_name || "Unknown food");
-    const category = escapeHtml(food.category || "Unknown category");
-    const calories = escapeHtml(food.calories_per_100g || "N/A");
-    const timestamp = escapeHtml(analysis.timestamp || "Unknown time");
-    const image = analysis.image_preview || "";
+    const title = safeText(food.food_name, "Unknown food");
+    const category = safeText(food.category, "Unknown category");
+    const calories = safeText(food.calories_per_100g, "N/A");
+    const timestamp = safeText(analysis.timestamp, "Unknown time");
+    const image = typeof analysis.image_preview === "string" ? analysis.image_preview.trim() : "";
 
     return (
         '<article class="card" data-id="' +
-        analysis._id +
+        escapeHtml(analysisId) +
         '">' +
-        '<img src="' +
-        image +
-        '" alt="' +
-        title +
-        '">' +
+        renderCardImage(image, title) +
         '<div class="card-body">' +
         '<h3 class="card-title">' +
-        title +
+        escapeHtml(title) +
         "</h3>" +
         '<p class="meta">' +
-        category +
+        escapeHtml(category) +
         "</p>" +
         '<p class="meta">' +
-        calories +
+        escapeHtml(calories) +
         " calories / 100g</p>" +
         '<p class="meta">' +
-        timestamp +
+        escapeHtml(timestamp) +
         "</p>" +
         '<div class="controls">' +
-        '<button class="view-btn" data-action="view" data-id="' +
-        analysis._id +
+        '<button type="button" class="view-btn" data-action="view" data-id="' +
+        escapeHtml(analysisId) +
         '">View</button>' +
-        '<button class="del-btn" data-action="delete" data-id="' +
-        analysis._id +
+        '<button type="button" class="del-btn" data-action="delete" data-id="' +
+        escapeHtml(analysisId) +
         '">Delete</button>' +
         "</div>" +
         "</div>" +
@@ -56,53 +105,73 @@ function buildCard(analysis) {
     );
 }
 
-function buildModal(analysis) {
-    const food = analysis.food_data || {};
-    const nutrition = Object.entries(food.nutritional_info || {})
+function buildNutritionItems(nutritionalInfo) {
+    const entries = Object.entries(nutritionalInfo || {});
+    if (entries.length === 0) {
+        return '<p class="modal-empty">No macro details available.</p>';
+    }
+
+    return entries
         .map(([key, value]) => {
             return (
                 '<div class="modal-item">' +
                 "<span>" +
-                escapeHtml(key.replaceAll("_", " ")) +
+                escapeHtml(prettifyKey(key)) +
                 "</span>" +
                 "<strong>" +
-                escapeHtml(value || "N/A") +
+                escapeHtml(safeText(value, "N/A")) +
                 "</strong>" +
                 "</div>"
             );
         })
         .join("");
+}
 
-    const benefits = (food.health_benefits || [])
-        .map((item) => "<li>" + escapeHtml(item) + "</li>")
-        .join("");
-
-    const imageBlock = analysis.image_preview
-        ? '<img src="' +
-          analysis.image_preview +
-          '" alt="' +
-          escapeHtml(food.food_name || "Food image") +
-          '" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-top:12px;">'
-        : "";
+function buildList(items, emptyText) {
+    if (!Array.isArray(items) || items.length === 0) {
+        return '<p class="modal-empty">' + escapeHtml(emptyText) + "</p>";
+    }
 
     return (
-        "<h2>" +
-        escapeHtml(food.food_name || "Food details") +
+        '<ul class="modal-list">' +
+        items
+            .map((item) => {
+                return "<li>" + escapeHtml(safeText(item, "N/A")) + "</li>";
+            })
+            .join("") +
+        "</ul>"
+    );
+}
+
+function buildModal(analysis) {
+    const food = analysis.food_data || {};
+    const image = typeof analysis.image_preview === "string" ? analysis.image_preview.trim() : "";
+    const title = safeText(food.food_name, "Food details");
+
+    const imageBlock = image
+        ? '<img class="modal-image" src="' +
+          escapeHtml(image) +
+          '" alt="' +
+          escapeHtml(title) +
+          '">'
+        : '<div class="modal-image-empty"><i class="fa-solid fa-image"></i><span>No image preview available</span></div>';
+
+    return (
+        '<h2 class="modal-title">' +
+        escapeHtml(title) +
         "</h2>" +
         '<p class="meta">' +
-        escapeHtml(food.category || "Unknown category") +
+        escapeHtml(safeText(food.category, "Unknown category")) +
         " | " +
-        escapeHtml(food.calories_per_100g || "N/A") +
+        escapeHtml(safeText(food.calories_per_100g, "N/A")) +
         " calories / 100g</p>" +
         imageBlock +
-        '<h3 style="margin-top:14px;">Nutritional Information</h3>' +
+        '<h3 class="modal-heading">Nutritional Information</h3>' +
         '<div class="modal-grid">' +
-        (nutrition || "<p>No macro details available.</p>") +
+        buildNutritionItems(food.nutritional_info) +
         "</div>" +
-        '<h3 style="margin-top:14px;">Health Benefits</h3>' +
-        (benefits
-            ? '<ul style="margin:8px 0 0 20px;line-height:1.6;">' + benefits + "</ul>"
-            : '<p style="margin-top:6px;">No health benefits listed.</p>')
+        '<h3 class="modal-heading">Health Benefits</h3>' +
+        buildList(food.health_benefits, "No health benefits listed.")
     );
 }
 
@@ -120,67 +189,85 @@ async function loadHistory() {
             throw new Error(payload.error || "Failed to load history");
         }
 
-        const analyses = payload.analyses || [];
+        const analyses = Array.isArray(payload.analyses) ? payload.analyses : [];
         if (analyses.length === 0) {
             historyGrid.innerHTML = "";
+            setEmptyStateMessage(defaultEmptyMessage);
             emptyState.classList.remove("hidden");
             return;
         }
 
         emptyState.classList.add("hidden");
+        setEmptyStateMessage(defaultEmptyMessage);
         historyGrid.innerHTML = analyses.map(buildCard).join("");
     } catch (error) {
         historyGrid.innerHTML = "";
+        setEmptyStateMessage("Unable to load history: " + safeText(error.message, "Unknown error"));
         emptyState.classList.remove("hidden");
-        const paragraph = emptyState.querySelector("p");
-        if (paragraph) {
-            paragraph.textContent = "Unable to load history: " + error.message;
-        }
     }
 }
 
 async function viewAnalysis(analysisId) {
-    const response = await fetch("/analysis/" + analysisId);
-    if (response.status === 401) {
-        window.location.href = "/login";
+    if (!analysisId) {
+        window.alert("Invalid analysis id.");
         return;
     }
 
-    const payload = await response.json();
-    if (payload.success !== true) {
-        alert(payload.error || "Unable to open details.");
-        return;
-    }
+    try {
+        const response = await fetch("/analysis/" + encodeURIComponent(analysisId));
+        if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+        }
 
-    modalContent.innerHTML = buildModal(payload.analysis);
-    detailModal.classList.remove("hidden");
+        const payload = await response.json();
+        if (payload.success !== true) {
+            window.alert(payload.error || "Unable to open details.");
+            return;
+        }
+
+        modalContent.innerHTML = buildModal(payload.analysis || {});
+        detailModal.classList.remove("hidden");
+    } catch (error) {
+        window.alert("Unable to open details: " + safeText(error.message, "Unknown error"));
+    }
 }
 
 async function deleteAnalysis(analysisId) {
+    if (!analysisId) {
+        window.alert("Invalid analysis id.");
+        return;
+    }
+
     const confirmed = window.confirm("Delete this analysis permanently?");
     if (!confirmed) {
         return;
     }
 
-    const response = await fetch("/delete/" + analysisId, { method: "DELETE" });
-    if (response.status === 401) {
-        window.location.href = "/login";
-        return;
-    }
+    try {
+        const response = await fetch("/delete/" + encodeURIComponent(analysisId), { method: "DELETE" });
+        if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+        }
 
-    const payload = await response.json();
-    if (payload.success !== true) {
-        alert(payload.error || "Delete failed.");
-        return;
-    }
+        const payload = await response.json();
+        if (payload.success !== true) {
+            window.alert(payload.error || "Delete failed.");
+            return;
+        }
 
-    const card = document.querySelector('.card[data-id="' + analysisId + '"]');
-    if (card) {
-        card.remove();
-    }
+        const card = document.querySelector('.card[data-id="' + analysisId + '"]');
+        if (card) {
+            card.remove();
+        }
 
-    if (!document.querySelector(".card")) {
-        emptyState.classList.remove("hidden");
+        if (!document.querySelector(".card")) {
+            setEmptyStateMessage(defaultEmptyMessage);
+            emptyState.classList.remove("hidden");
+        }
+    } catch (error) {
+        window.alert("Delete failed: " + safeText(error.message, "Unknown error"));
     }
 }
 
@@ -191,7 +278,7 @@ historyGrid.addEventListener("click", (event) => {
     }
 
     const action = button.getAttribute("data-action");
-    const id = button.getAttribute("data-id");
+    const id = button.getAttribute("data-id") || "";
 
     if (action === "view") {
         viewAnalysis(id);
@@ -202,11 +289,21 @@ historyGrid.addEventListener("click", (event) => {
     }
 });
 
-closeModalBtn.addEventListener("click", () => detailModal.classList.add("hidden"));
+function closeModal() {
+    detailModal.classList.add("hidden");
+}
+
+closeModalBtn.addEventListener("click", closeModal);
 
 detailModal.addEventListener("click", (event) => {
     if (event.target === detailModal) {
-        detailModal.classList.add("hidden");
+        closeModal();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !detailModal.classList.contains("hidden")) {
+        closeModal();
     }
 });
 

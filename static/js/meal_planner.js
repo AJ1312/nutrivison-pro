@@ -2,12 +2,43 @@ const form = document.getElementById("mealPlannerForm");
 const resultBox = document.getElementById("resultBox");
 const formMessage = document.getElementById("formMessage");
 
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function safeText(value, fallback = "N/A") {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+
+    if (Array.isArray(value)) {
+        const joined = value.map((item) => String(item).trim()).filter(Boolean).join(", ");
+        return joined || fallback;
+    }
+
+    if (typeof value === "object") {
+        try {
+            return JSON.stringify(value);
+        } catch (_error) {
+            return fallback;
+        }
+    }
+
+    const normalized = String(value).trim();
+    return normalized || fallback;
+}
+
 function showMessage(text, type = "error") {
-    formMessage.innerHTML = '<div class="message ' + type + '">' + text + "</div>";
+    formMessage.innerHTML = text ? '<div class="message ' + type + '">' + escapeHtml(text) + "</div>" : "";
 }
 
 function renderMealPlan(plan) {
-    const summary = plan.summary || {};
+    const summary = typeof plan.summary === "object" && plan.summary ? plan.summary : {};
     const mealPlan = Array.isArray(plan.meal_plan) ? plan.meal_plan : [];
     const tips = Array.isArray(plan.tips) ? plan.tips : [];
 
@@ -16,55 +47,66 @@ function renderMealPlan(plan) {
         "<h3>Daily Summary</h3>" +
         '<div class="kv-grid">' +
         '<div class="kv-item"><span>Calories</span><strong>' +
-        (summary.daily_calories || "N/A") +
+        escapeHtml(safeText(summary.daily_calories)) +
         "</strong></div>" +
         '<div class="kv-item"><span>Goal</span><strong>' +
-        (summary.goal || "N/A") +
+        escapeHtml(safeText(summary.goal)) +
         "</strong></div>" +
         '<div class="kv-item"><span>Diet Type</span><strong>' +
-        (summary.diet_type || "N/A") +
+        escapeHtml(safeText(summary.diet_type)) +
         "</strong></div>" +
         "</div>" +
         "</article>";
 
-    const mealsHtml = mealPlan
-        .map((meal) => {
-            const items = Array.isArray(meal.items) ? meal.items : [];
-            const itemsList = items
-                .map((item) => {
-                    return (
-                        "<li>" +
-                        (item.name || "Item") +
-                        " • " +
-                        (item.portion || "portion") +
-                        " • " +
-                        (item.calories || "N/A") +
-                        " kcal</li>"
-                    );
-                })
-                .join("");
+    const mealsHtml =
+        mealPlan.length > 0
+            ? mealPlan
+                  .map((meal) => {
+                      const mealData = typeof meal === "object" && meal ? meal : {};
+                      const items = Array.isArray(mealData.items) ? mealData.items : [];
 
-            return (
-                '<article class="result-card">' +
-                "<h3>" +
-                (meal.meal_name || "Meal") +
-                " (" +
-                (meal.total_calories || "N/A") +
-                " kcal)</h3>" +
-                '<ul class="result-list">' +
-                itemsList +
-                "</ul>" +
-                "</article>"
-            );
-        })
-        .join("");
+                      const itemsList =
+                          items.length > 0
+                              ? items
+                                    .map((item) => {
+                                        const entry = typeof item === "object" && item ? item : {};
+                                        return (
+                                            "<li>" +
+                                            escapeHtml(safeText(entry.name, "Item")) +
+                                            " • " +
+                                            escapeHtml(safeText(entry.portion, "portion")) +
+                                            " • " +
+                                            escapeHtml(safeText(entry.calories)) +
+                                            " kcal</li>"
+                                        );
+                                    })
+                                    .join("")
+                              : "<li>No items generated for this meal.</li>";
+
+                      return (
+                          '<article class="result-card">' +
+                          "<h3>" +
+                          escapeHtml(safeText(mealData.meal_name, "Meal")) +
+                          " (" +
+                          escapeHtml(safeText(mealData.total_calories)) +
+                          " kcal)</h3>" +
+                          '<ul class="result-list">' +
+                          itemsList +
+                          "</ul>" +
+                          "</article>"
+                      );
+                  })
+                  .join("")
+            : '<article class="result-card"><h3>Meals</h3><p>No meal suggestions were returned.</p></article>';
 
     const tipsHtml =
         '<article class="result-card">' +
         "<h3>Tips</h3>" +
-        '<ul class="result-list">' +
-        tips.map((tip) => "<li>" + tip + "</li>").join("") +
-        "</ul>" +
+        (tips.length > 0
+            ? '<ul class="result-list">' +
+              tips.map((tip) => "<li>" + escapeHtml(safeText(tip, "Tip")) + "</li>").join("") +
+              "</ul>"
+            : "<p>No additional tips were provided.</p>") +
         "</article>";
 
     resultBox.innerHTML = summaryCard + mealsHtml + tipsHtml;
@@ -98,7 +140,7 @@ form.addEventListener("submit", async (event) => {
         renderMealPlan(data.plan || {});
         showMessage("Meal plan generated successfully.", "success");
     } catch (error) {
-        showMessage(error.message || "Something went wrong.");
+        showMessage(safeText(error.message, "Something went wrong."));
         resultBox.innerHTML =
             '<div class="result-placeholder"><i class="fa-solid fa-triangle-exclamation"></i><p>Failed to generate meal plan.</p></div>';
     }

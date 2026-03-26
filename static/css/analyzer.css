@@ -17,8 +17,15 @@
     padding: 0;
 }
 
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     font-family: 'Sora', sans-serif;
+    line-height: 1.55;
     color: var(--text);
     min-height: 100vh;
     background:
@@ -95,7 +102,7 @@ nav {
 
 .nav-link,
 .nav-btn {
-    font-size: 0.92rem;
+    font-size: 0.94rem;
     color: var(--text);
     text-decoration: none;
     border: 1px solid var(--border);
@@ -103,6 +110,7 @@ nav {
     padding: 9px 14px;
     border-radius: 12px;
     font-weight: 600;
+    line-height: 1.25;
 }
 
 .nav-btn {
@@ -168,7 +176,7 @@ nav {
     border-radius: 12px;
     border: 1px solid rgba(162, 188, 241, 0.28);
     background: rgba(22, 44, 92, 0.54);
-    font-size: 0.86rem;
+    font-size: 0.89rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
@@ -240,6 +248,8 @@ nav {
     font-weight: 700;
     cursor: pointer;
     font-family: 'Sora', sans-serif;
+    line-height: 1.25;
+    font-size: 0.93rem;
 }
 
 .action-btn {
@@ -416,7 +426,7 @@ nav {
     margin-top: 12px;
     border-radius: 12px;
     padding: 12px;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     border: 1px solid transparent;
 }
 
@@ -462,7 +472,7 @@ nav {
     .nav-link,
     .nav-btn {
         padding: 8px 10px;
-        font-size: 0.8rem;
+        font-size: 0.84rem;
     }
 
     .upload-panel,

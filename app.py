@@ -7,6 +7,7 @@ from functools import wraps
 
 import google.generativeai as genai
 from bson import ObjectId
+from bson.errors import InvalidId
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -35,28 +36,41 @@ DATABASE_NAME = os.getenv("DATABASE_NAME", "food_analyzer")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "food_items")
 USER_COLLECTION_NAME = os.getenv("USER_COLLECTION_NAME", "users")
 
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY environment variable is required")
-if not MONGODB_URI:
-    raise ValueError("MONGODB_URI environment variable is required")
+startup_issues = []
 
-genai.configure(api_key=GEMINI_API_KEY)
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+else:
+    startup_issues.append("GEMINI_API_KEY is missing")
 
-try:
-    mongo_client = MongoClient(MONGODB_URI)
-    db = mongo_client[DATABASE_NAME]
-    food_collection = db[COLLECTION_NAME]
-    users_collection = db[USER_COLLECTION_NAME]
-    users_collection.create_index(
-        [("email", 1)],
-        unique=True,
-        name="unique_email_not_null",
-        partialFilterExpression={"email": {"$type": "string"}},
-    )
-    print("[SUCCESS] MongoDB connected successfully!")
-except Exception as error:
-    print(f"[ERROR] MongoDB connection error: {error}")
-    raise
+mongo_client = None
+db = None
+food_collection = None
+users_collection = None
+
+if MONGODB_URI:
+    try:
+        mongo_client = MongoClient(MONGODB_URI)
+        db = mongo_client[DATABASE_NAME]
+        food_collection = db[COLLECTION_NAME]
+        users_collection = db[USER_COLLECTION_NAME]
+        users_collection.create_index(
+            [("email", 1)],
+            unique=True,
+            name="unique_email_not_null",
+            partialFilterExpression={"email": {"$type": "string"}},
+        )
+        print("[SUCCESS] MongoDB connected successfully!")
+    except Exception as error:
+        startup_issues.append(f"MongoDB connection error: {error}")
+        print(f"[ERROR] MongoDB connection error: {error}")
+else:
+    startup_issues.append("MONGODB_URI is missing")
+
+if startup_issues:
+    print("[WARN] Startup issues detected:")
+    for issue in startup_issues:
+        print(f"[WARN] - {issue}")
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "bmp", "webp"}
 MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16777216))
@@ -118,6 +132,46 @@ def image_to_base64(image_file):
     except Exception as error:
         print(f"[ERROR] Error converting image to base64: {error}")
         return None
+
+
+def format_timestamp(timestamp_value):
+    if isinstance(timestamp_value, datetime):
+        return timestamp_value.strftime("%Y-%m-%d %H:%M:%S")
+
+    if isinstance(timestamp_value, str):
+        normalized = timestamp_value.strip()
+        if not normalized:
+            return "Unknown time"
+
+        try:
+            parsed = datetime.fromisoformat(normalized.replace("Z", "+00:00"))
+            return parsed.strftime("%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return normalized
+
+    return "Unknown time"
+
+
+def build_image_preview(image_base64):
+    if not isinstance(image_base64, str) or not image_base64.strip():
+        return None
+
+    if image_base64.startswith("data:image/"):
+        return image_base64
+
+    return f"data:image/jpeg;base64,{image_base64}"
+
+
+def serialize_analysis_document(analysis):
+    serialized = dict(analysis)
+    serialized["_id"] = str(serialized.get("_id", ""))
+    serialized["timestamp"] = format_timestamp(serialized.get("timestamp"))
+
+    image_preview = build_image_preview(serialized.get("image_base64"))
+    if image_preview:
+        serialized["image_preview"] = image_preview
+
+    return serialized
 
 
 def extract_json_from_response(response_text):
@@ -715,14 +769,8 @@ def history_api():
             .sort("timestamp", -1)
             .limit(50)
         )
-
-        for analysis in analyses:
-            analysis["_id"] = str(analysis["_id"])
-            analysis["timestamp"] = analysis["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-            if "image_base64" in analysis:
-                analysis["image_preview"] = f"data:image/jpeg;base64,{analysis['image_base64']}"
-
-        return jsonify({"success": True, "analyses": analyses})
+        safe_analyses = [serialize_analysis_document(analysis) for analysis in analyses]
+        return jsonify({"success": True, "analyses": safe_analyses})
     except Exception as error:
         print(f"[ERROR] Error fetching history: {error}")
         return jsonify({"error": f"Error fetching history: {str(error)}", "success": False}), 500
@@ -732,19 +780,19 @@ def history_api():
 @login_required(api=True)
 def get_analysis(analysis_id):
     try:
+        object_id = ObjectId(analysis_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid analysis id", "success": False}), 400
+
+    try:
         analysis = food_collection.find_one(
-            {"_id": ObjectId(analysis_id), "user_id": session.get("user_id")}
+            {"_id": object_id, "user_id": session.get("user_id")}
         )
 
         if not analysis:
             return jsonify({"error": "Analysis not found", "success": False}), 404
 
-        analysis["_id"] = str(analysis["_id"])
-        analysis["timestamp"] = analysis["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-        if "image_base64" in analysis:
-            analysis["image_preview"] = f"data:image/jpeg;base64,{analysis['image_base64']}"
-
-        return jsonify({"success": True, "analysis": analysis})
+        return jsonify({"success": True, "analysis": serialize_analysis_document(analysis)})
     except Exception as error:
         print(f"[ERROR] Error fetching analysis: {error}")
         return jsonify({"error": f"Error fetching analysis: {str(error)}", "success": False}), 500
@@ -754,8 +802,13 @@ def get_analysis(analysis_id):
 @login_required(api=True)
 def delete_analysis(analysis_id):
     try:
+        object_id = ObjectId(analysis_id)
+    except InvalidId:
+        return jsonify({"error": "Invalid analysis id", "success": False}), 400
+
+    try:
         result = food_collection.delete_one(
-            {"_id": ObjectId(analysis_id), "user_id": session.get("user_id")}
+            {"_id": object_id, "user_id": session.get("user_id")}
         )
 
         if result.deleted_count > 0:

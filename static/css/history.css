@@ -6,6 +6,7 @@
     --primary: #ff8f3d;
     --danger: #ff645c;
     --border: rgba(176, 199, 240, 0.2);
+    --surface: rgba(10, 23, 58, 0.82);
 }
 
 * {
@@ -14,15 +15,34 @@
     padding: 0;
 }
 
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     min-height: 100vh;
-    font-family: 'Sora', sans-serif;
+    font-family: "Sora", sans-serif;
+    line-height: 1.55;
     color: var(--text);
     background:
         radial-gradient(circle at 8% 12%, rgba(58, 209, 201, 0.16), transparent 30%),
         radial-gradient(circle at 90% 9%, rgba(255, 143, 61, 0.2), transparent 35%),
         linear-gradient(152deg, #020714 0%, var(--bg) 48%, #12326f 100%);
     padding: 22px;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
 }
 
 .topbar {
@@ -42,11 +62,12 @@ body {
 .brand {
     color: var(--text);
     text-decoration: none;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: "Space Grotesk", sans-serif;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     gap: 10px;
+    letter-spacing: 0.01em;
 }
 
 .brand-badge {
@@ -73,8 +94,16 @@ nav {
     text-decoration: none;
     border-radius: 12px;
     padding: 9px 14px;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-weight: 600;
+    line-height: 1.3;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.nav-link:hover,
+.nav-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 143, 61, 0.48);
 }
 
 .nav-btn {
@@ -104,18 +133,19 @@ nav {
 
 .hero h1 {
     margin-bottom: 8px;
-    font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+    font-size: clamp(1.95rem, 2.8vw, 2.5rem);
+    line-height: 1.15;
 }
 
 .hero p {
     color: var(--muted);
-    line-height: 1.65;
+    max-width: 760px;
 }
 
 .history-grid {
     margin-top: 16px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 14px;
 }
 
@@ -123,13 +153,41 @@ nav {
     border-radius: 18px;
     overflow: hidden;
     border: 1px solid var(--border);
-    background: rgba(10, 23, 58, 0.82);
+    background: var(--surface);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 143, 61, 0.52);
+}
+
+.card img,
+.img-fallback {
+    width: 100%;
+    height: 180px;
 }
 
 .card img {
-    width: 100%;
-    height: 180px;
     object-fit: cover;
+}
+
+.img-fallback {
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    text-align: center;
+    color: #c9d9f7;
+    background: linear-gradient(155deg, rgba(17, 37, 81, 0.58), rgba(8, 18, 47, 0.8));
+}
+
+.img-fallback i {
+    font-size: 1.35rem;
+    color: #ffd1ab;
+}
+
+.img-fallback span {
+    font-size: 0.86rem;
 }
 
 .card-body {
@@ -137,14 +195,16 @@ nav {
 }
 
 .card-title {
-    font-size: 1.07rem;
+    font-size: 1.06rem;
     margin-bottom: 6px;
+    line-height: 1.3;
 }
 
 .meta {
     color: var(--muted);
-    font-size: 0.87rem;
+    font-size: 0.89rem;
     margin-bottom: 3px;
+    line-height: 1.5;
 }
 
 .controls {
@@ -158,9 +218,10 @@ nav {
     border: none;
     border-radius: 10px;
     padding: 9px;
-    font-family: 'Sora', sans-serif;
     cursor: pointer;
     font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.25;
 }
 
 .view-btn {
@@ -187,6 +248,10 @@ nav {
     font-size: 2.1rem;
     color: #ffc085;
     margin-bottom: 12px;
+}
+
+.empty-state h3 {
+    font-size: 1.2rem;
 }
 
 .empty-state p {
@@ -242,6 +307,38 @@ nav {
     cursor: pointer;
 }
 
+.modal-title {
+    font-size: 1.4rem;
+    margin-right: 42px;
+}
+
+.modal-image,
+.modal-image-empty {
+    margin-top: 12px;
+    width: 100%;
+    border-radius: 12px;
+}
+
+.modal-image {
+    max-height: 300px;
+    object-fit: cover;
+}
+
+.modal-image-empty {
+    min-height: 160px;
+    border: 1px dashed rgba(176, 199, 240, 0.35);
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    color: var(--muted);
+    background: rgba(14, 33, 77, 0.7);
+}
+
+.modal-heading {
+    margin-top: 14px;
+    font-size: 1.08rem;
+}
+
 .modal-grid {
     margin-top: 14px;
     display: grid;
@@ -257,13 +354,27 @@ nav {
 }
 
 .modal-item span {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: var(--muted);
     display: block;
 }
 
 .modal-item strong {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+}
+
+.modal-empty {
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.modal-list {
+    margin: 8px 0 0 20px;
+    line-height: 1.6;
+}
+
+.modal-list li {
+    margin-bottom: 4px;
 }
 
 @media (max-width: 700px) {
@@ -286,7 +397,7 @@ nav {
     .nav-link,
     .nav-btn {
         padding: 8px 10px;
-        font-size: 0.8rem;
+        font-size: 0.84rem;
     }
 
     .hero {

@@ -22,6 +22,44 @@ const loadingMessages = [
     "Preparing your final report..."
 ];
 
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function safeText(value, fallback = "N/A") {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+
+    if (Array.isArray(value)) {
+        const normalized = value.map((item) => String(item).trim()).filter(Boolean).join(", ");
+        return normalized || fallback;
+    }
+
+    if (typeof value === "object") {
+        try {
+            return JSON.stringify(value);
+        } catch (_error) {
+            return fallback;
+        }
+    }
+
+    const normalized = String(value).trim();
+    return normalized || fallback;
+}
+
+function prettyKey(key) {
+    return safeText(key, "item")
+        .replace(/_/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 function setLocationStatus(ok) {
     if (ok) {
         locationStatus.innerHTML =
@@ -51,7 +89,7 @@ function initLocation() {
 }
 
 function showMessage(text, type = "error") {
-    messageBox.innerHTML = '<div class="message ' + type + '">' + text + "</div>";
+    messageBox.innerHTML = '<div class="message ' + type + '">' + escapeHtml(safeText(text, "")) + "</div>";
     setTimeout(() => {
         messageBox.innerHTML = "";
     }, 4500);
@@ -63,54 +101,54 @@ function setLoading(isLoading) {
 
 function simulateProgress() {
     let progress = 0;
-    let idx = 0;
+    let index = 0;
 
     const interval = setInterval(() => {
         progress = Math.min(progress + Math.random() * 18, 92);
         progressFill.style.width = progress + "%";
-        loadingText.textContent = loadingMessages[idx % loadingMessages.length];
-        idx += 1;
+        loadingText.textContent = loadingMessages[index % loadingMessages.length];
+        index += 1;
     }, 520);
 
     return interval;
 }
 
 function formatList(items, fallback = "N/A") {
-    if (Array.isArray(items) === false || items.length === 0) {
-        return "<p>" + fallback + "</p>";
+    if (!Array.isArray(items) || items.length === 0) {
+        return "<p>" + escapeHtml(fallback) + "</p>";
     }
 
-    const list = items.map((item) => "<li>" + item + "</li>").join("");
+    const list = items.map((item) => "<li>" + escapeHtml(safeText(item, "N/A")) + "</li>").join("");
     return '<ul class="list">' + list + "</ul>";
 }
 
 function infoCard(title, body) {
-    return '<article class="result-card"><h3>' + title + "</h3>" + body + "</article>";
+    return '<article class="result-card"><h3>' + escapeHtml(title) + "</h3>" + body + "</article>";
 }
 
 function renderPlaces(places) {
-    if (Array.isArray(places) === false || places.length === 0) {
+    if (!Array.isArray(places) || places.length === 0) {
         return "<p>No nearby suggestions available.</p>";
     }
 
     return places
         .map((place) => {
-            const name = place.name || "Unknown place";
-            const type = place.type || "Place";
-            const distance = place.distance || "Distance unavailable";
-            const description = place.description || "";
+            const name = safeText(place && place.name, "Unknown place");
+            const type = safeText(place && place.type, "Place");
+            const distance = safeText(place && place.distance, "Distance unavailable");
+            const description = safeText(place && place.description, "");
             return (
                 '<div class="place">' +
                 "<strong>" +
-                name +
+                escapeHtml(name) +
                 "</strong>" +
                 "<p>" +
-                type +
+                escapeHtml(type) +
                 " | " +
-                distance +
+                escapeHtml(distance) +
                 "</p>" +
                 "<p>" +
-                description +
+                escapeHtml(description) +
                 "</p>" +
                 "</div>"
             );
@@ -118,99 +156,109 @@ function renderPlaces(places) {
         .join("");
 }
 
-function renderResult(data, imageBase64) {
-    foodImage.src = imageBase64;
-    foodImage.style.display = "block";
-
-    resultTitle.textContent = data.food_name || "Food analysis";
-    resultSubtitle.textContent =
-        (data.category || "Unknown category") +
-        " • " +
-        (data.calories_per_100g || "N/A") +
-        " calories / 100g";
-
-    const nutritionEntries = Object.entries(data.nutritional_info || {});
-    let nutritionBody = "<p>No nutrition data received.</p>";
-
-    if (nutritionEntries.length > 0) {
-        const nutritionRows = nutritionEntries
-            .map(([key, value]) => {
-                const normalizedValue = value || "N/A";
-                let suffix = "";
-                if (normalizedValue !== "N/A") {
-                    suffix = key === "sodium" ? " mg" : " g";
-                }
-                return (
-                    '<div class="kv-item">' +
-                    "<span>" +
-                    key.replace(/_/g, " ") +
-                    "</span>" +
-                    "<strong>" +
-                    normalizedValue +
-                    suffix +
-                    "</strong>" +
-                    "</div>"
-                );
-            })
-            .join("");
-
-        nutritionBody = '<div class="kv-grid">' + nutritionRows + "</div>";
+function renderNutritionalGrid(nutritionalInfo) {
+    const entries = Object.entries(nutritionalInfo || {});
+    if (entries.length === 0) {
+        return "<p>No nutrition data received.</p>";
     }
 
-    const vitamins = Object.entries(data.vitamins_minerals || {})
-        .filter(([, value]) => value && value !== "N/A")
+    const rows = entries
         .map(([key, value]) => {
-            return '<span class="tag">' + key.replace(/_/g, " ") + ": " + value + "</span>";
+            const normalizedValue = safeText(value);
+            let suffix = "";
+            if (normalizedValue !== "N/A") {
+                suffix = key === "sodium" ? " mg" : " g";
+            }
+            return (
+                '<div class="kv-item">' +
+                "<span>" +
+                escapeHtml(prettyKey(key)) +
+                "</span>" +
+                "<strong>" +
+                escapeHtml(normalizedValue + suffix) +
+                "</strong>" +
+                "</div>"
+            );
         })
         .join("");
 
-    const dietary = (data.dietary_restrictions || [])
-        .map((item) => '<span class="tag">' + item + "</span>")
-        .join("");
+    return '<div class="kv-grid">' + rows + "</div>";
+}
 
-    const allergenBody =
-        Array.isArray(data.allergens) && data.allergens.length > 0
-            ? '<div class="tag-list">' +
-              data.allergens.map((item) => '<span class="tag">' + item + "</span>").join("") +
-              "</div>"
-            : "<p>No common allergens identified.</p>";
+function renderTagBlock(items, emptyText) {
+    if (!Array.isArray(items) || items.length === 0) {
+        return "<p>" + escapeHtml(emptyText) + "</p>";
+    }
+
+    return (
+        '<div class="tag-list">' +
+        items.map((item) => '<span class="tag">' + escapeHtml(safeText(item, "N/A")) + "</span>").join("") +
+        "</div>"
+    );
+}
+
+function renderResult(data, imageBase64) {
+    const payload = typeof data === "object" && data ? data : {};
+
+    foodImage.src = imageBase64;
+    foodImage.style.display = "block";
+
+    resultTitle.textContent = safeText(payload.food_name, "Food analysis");
+    resultSubtitle.textContent =
+        safeText(payload.category, "Unknown category") +
+        " • " +
+        safeText(payload.calories_per_100g) +
+        " calories / 100g";
+
+    const vitamins = Object.entries(payload.vitamins_minerals || {})
+        .filter(([, value]) => safeText(value) !== "N/A")
+        .map(([key, value]) => {
+            return escapeHtml(prettyKey(key)) + ": " + escapeHtml(safeText(value));
+        });
 
     const cards = [
         infoCard(
             "Core Snapshot",
             '<div class="kv-grid">' +
                 '<div class="kv-item"><span>Serving Size</span><strong>' +
-                (data.serving_size || "N/A") +
-                '</strong></div>' +
+                escapeHtml(safeText(payload.serving_size)) +
+                "</strong></div>" +
                 '<div class="kv-item"><span>Glycemic Index</span><strong>' +
-                (data.glycemic_index || "N/A") +
+                escapeHtml(safeText(payload.glycemic_index)) +
                 "</strong></div>" +
                 "</div>"
         ),
-        infoCard("Macronutrients (per 100g)", nutritionBody),
+        infoCard("Macronutrients (per 100g)", renderNutritionalGrid(payload.nutritional_info)),
         infoCard(
             "Vitamins & Minerals",
-            vitamins ? '<div class="tag-list">' + vitamins + "</div>" : "<p>No additional micronutrient details.</p>"
+            vitamins.length > 0
+                ? '<div class="tag-list">' +
+                  vitamins.map((entry) => '<span class="tag">' + entry + "</span>").join("") +
+                  "</div>"
+                : "<p>No additional micronutrient details.</p>"
         ),
-        infoCard("Health Benefits", formatList(data.health_benefits, "No health benefits listed.")),
-        infoCard("Allergens", allergenBody),
+        infoCard("Health Benefits", formatList(payload.health_benefits, "No health benefits listed.")),
+        infoCard(
+            "Allergens",
+            renderTagBlock(payload.allergens, "No common allergens identified.")
+        ),
         infoCard(
             "Dietary Compatibility",
-            dietary ? '<div class="tag-list">' + dietary + "</div>" : "<p>No dietary tags available.</p>"
+            renderTagBlock(payload.dietary_restrictions, "No dietary tags available.")
         ),
-        infoCard("Storage Tips", "<p>" + (data.storage_tips || "No storage guidance.") + "</p>"),
+        infoCard("Storage Tips", "<p>" + escapeHtml(safeText(payload.storage_tips, "No storage guidance.")) + "</p>"),
         infoCard(
             "Preparation Suggestions",
-            formatList(data.preparation_suggestions, "No preparation suggestions available.")
+            formatList(payload.preparation_suggestions, "No preparation suggestions available.")
         ),
-        infoCard("Nearby Places", renderPlaces(data.nearby_places))
+        infoCard("Nearby Places", renderPlaces(payload.nearby_places))
     ];
 
     resultGrid.innerHTML = cards.join("");
 }
 
 async function handleUpload(file) {
-    if (file.type.startsWith("image/") === false) {
+    if (!file || !file.type || file.type.startsWith("image/") === false) {
         showMessage("Please upload a valid image file.");
         return;
     }
@@ -221,7 +269,7 @@ async function handleUpload(file) {
     }
 
     fileInfo.innerHTML =
-        "<strong>" + file.name + "</strong> • " + (file.size / (1024 * 1024)).toFixed(2) + " MB";
+        "<strong>" + escapeHtml(file.name) + "</strong> • " + (file.size / (1024 * 1024)).toFixed(2) + " MB";
 
     const formData = new FormData();
     formData.append("file", file);
@@ -256,13 +304,13 @@ async function handleUpload(file) {
                 renderResult(data.food_data, data.image_base64);
                 showMessage("Analysis completed successfully.", "success");
             } else {
-                showMessage(data.error || "Analysis failed.");
+                showMessage(safeText(data.error, "Analysis failed."));
             }
         }, 300);
     } catch (error) {
         clearInterval(progressInterval);
         setLoading(false);
-        showMessage("Network error: " + error.message);
+        showMessage("Network error: " + safeText(error.message, "Unknown error"));
     }
 }
 

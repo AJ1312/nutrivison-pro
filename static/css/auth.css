@@ -14,9 +14,16 @@
     padding: 0;
 }
 
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     min-height: 100vh;
     font-family: 'Sora', sans-serif;
+    line-height: 1.55;
     color: var(--text);
     background:
         radial-gradient(circle at 5% 18%, rgba(58, 209, 201, 0.16), transparent 32%),
@@ -112,7 +119,7 @@ body {
 }
 
 .auth-form label {
-    font-size: 0.86rem;
+    font-size: 0.9rem;
     color: #d5e2ff;
 }
 
@@ -124,6 +131,8 @@ body {
     border-radius: 10px;
     padding: 11px 12px;
     font-family: 'Sora', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.25;
 }
 
 .auth-form input:focus {
@@ -141,12 +150,14 @@ body {
     color: #fff;
     cursor: pointer;
     font-family: 'Sora', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.25;
     background: linear-gradient(120deg, var(--primary), var(--primary-dark));
 }
 
 .switch {
     margin-top: 14px;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     color: var(--muted);
 }
 
