@@ -6,6 +6,10 @@ const closeModalBtn = document.getElementById("closeModal");
 
 const defaultEmptyMessage = "Upload your first food image and your history will appear here.";
 
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
+
 function escapeHtml(text) {
     return String(text)
         .replaceAll("&", "&amp;")
@@ -196,13 +200,34 @@ function setModalVisibility(isVisible) {
     }
 }
 
-async function loadHistory() {
-    if (!historyGrid || !emptyState) {
+function showLoadingSpinner() {
+    const spinner = document.createElement("div");
+    spinner.id = "loadingSpinner";
+    spinner.className = "loading-spinner";
+    spinner.innerHTML = '<div class="spinner"></div><p>Loading history...</p>';
+
+    if (historyGrid) {
+        historyGrid.insertAdjacentElement("afterend", spinner);
+    }
+}
+
+function hideLoadingSpinner() {
+    const spinner = document.getElementById("loadingSpinner");
+    if (spinner) {
+        spinner.remove();
+    }
+}
+
+async function loadHistory(append = false) {
+    if (!historyGrid || !emptyState || isLoading) {
         return;
     }
 
+    isLoading = true;
+    showLoadingSpinner();
+
     try {
-        const response = await fetch("/api/history");
+        const response = await fetch(`/api/history?page=${currentPage}&limit=20`);
 
         if (response.status === 401) {
             window.location.href = "/login";
@@ -215,7 +240,11 @@ async function loadHistory() {
         }
 
         const analyses = Array.isArray(payload.analyses) ? payload.analyses : [];
-        if (analyses.length === 0) {
+        const pagination = payload.pagination || {};
+
+        hasMore = pagination.has_more || false;
+
+        if (analyses.length === 0 && !append) {
             historyGrid.innerHTML = "";
             setEmptyStateMessage(defaultEmptyMessage);
             emptyState.classList.remove("hidden");
@@ -224,11 +253,52 @@ async function loadHistory() {
 
         emptyState.classList.add("hidden");
         setEmptyStateMessage(defaultEmptyMessage);
-        historyGrid.innerHTML = analyses.map(buildCard).join("");
+
+        if (append) {
+            historyGrid.innerHTML += analyses.map(buildCard).join("");
+        } else {
+            historyGrid.innerHTML = analyses.map(buildCard).join("");
+        }
+
+        // Show "Load More" button if there are more results
+        updateLoadMoreButton();
     } catch (error) {
-        historyGrid.innerHTML = "";
+        if (!append) {
+            historyGrid.innerHTML = "";
+        }
         setEmptyStateMessage("Unable to load history: " + safeText(error.message, "Unknown error"));
         emptyState.classList.remove("hidden");
+    } finally {
+        isLoading = false;
+        hideLoadingSpinner();
+    }
+}
+
+function updateLoadMoreButton() {
+    let loadMoreBtn = document.getElementById("loadMoreBtn");
+
+    if (hasMore) {
+        if (!loadMoreBtn) {
+            loadMoreBtn = document.createElement("button");
+            loadMoreBtn.id = "loadMoreBtn";
+            loadMoreBtn.className = "load-more-btn";
+            loadMoreBtn.textContent = "Load More";
+            loadMoreBtn.addEventListener("click", loadMoreHistory);
+
+            if (historyGrid && historyGrid.parentNode) {
+                historyGrid.parentNode.insertBefore(loadMoreBtn, historyGrid.nextSibling);
+            }
+        }
+        loadMoreBtn.style.display = "block";
+    } else if (loadMoreBtn) {
+        loadMoreBtn.style.display = "none";
+    }
+}
+
+async function loadMoreHistory() {
+    if (!isLoading && hasMore) {
+        currentPage++;
+        await loadHistory(true);
     }
 }
 
