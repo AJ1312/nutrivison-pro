@@ -60,6 +60,11 @@ if MONGODB_URI:
             name="unique_email_not_null",
             partialFilterExpression={"email": {"$type": "string"}},
         )
+        # Create indexes for food_collection to optimize history queries
+        food_collection.create_index(
+            [("user_id", 1), ("timestamp", -1)],
+            name="user_id_timestamp_desc"
+        )
         print("[SUCCESS] MongoDB connected successfully!")
     except Exception as error:
         startup_issues.append(f"MongoDB connection error: {error}")
@@ -764,13 +769,45 @@ def upload_file():
 @login_required(api=True)
 def history_api():
     try:
+        page = request.args.get("page", 1, type=int)
+        limit = request.args.get("limit", 20, type=int)
+        limit = min(limit, 50)  # Cap at 50 items per page
+        skip = (page - 1) * limit
+
+        # Use projection to exclude large image_base64 field for list view
+        # Only include necessary fields for the history grid
         analyses = list(
-            food_collection.find({"user_id": session.get("user_id")})
+            food_collection.find(
+                {"user_id": session.get("user_id")},
+                {
+                    "_id": 1,
+                    "timestamp": 1,
+                    "original_filename": 1,
+                    "food_data.food_name": 1,
+                    "food_data.category": 1,
+                    "food_data.calories_per_100g": 1,
+                    "image_base64": 1  # Keep for preview generation
+                }
+            )
             .sort("timestamp", -1)
-            .limit(50)
+            .skip(skip)
+            .limit(limit)
         )
+
+        # Get total count for pagination
+        total_count = food_collection.count_documents({"user_id": session.get("user_id")})
+
         safe_analyses = [serialize_analysis_document(analysis) for analysis in analyses]
-        return jsonify({"success": True, "analyses": safe_analyses})
+        return jsonify({
+            "success": True,
+            "analyses": safe_analyses,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_count,
+                "has_more": skip + limit < total_count
+            }
+        })
     except Exception as error:
         print(f"[ERROR] Error fetching history: {error}")
         return jsonify({"error": f"Error fetching history: {str(error)}", "success": False}), 500
